@@ -1,0 +1,36 @@
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PySide6.QtCore import Signal
+from datetime import datetime, timezone, timedelta
+
+class NotificationItem(QWidget):
+    clicked = Signal(dict)
+    
+    def __init__(self, mail_data):
+        super().__init__()
+
+        self.data = mail_data
+        layout = QVBoxLayout(self)
+        self.label_titulo = QLabel(f"<b>{mail_data['asunto']}</b>")
+        self.label_cuerpo = QLabel(mail_data['cuerpo'][:50]+"...")
+        layout.addWidget(self.label_titulo)
+        layout.addWidget(self.label_cuerpo)
+        self.setStyleSheet(self.isNew(mail_data['time']))
+        self.isNew(mail_data['time'])
+
+    def mousePressEvent(self, event):
+        print("Notificación clickeada:")
+        self.clicked.emit(self.data) 
+    
+    def isNew(self,time):
+        tz_ar = timezone(timedelta(hours=-3))
+        ahora = datetime.now(tz_ar)
+        # 2. Calculamos la diferencia   
+        diferencia = ahora - time
+        
+        # 3. Determinamos el estilo (Umbral: 30 minutos)
+        if diferencia.total_seconds() < 180:
+            # ESTILO NUEVO: Fondo ámbar suave con borde naranja
+            return "border: 3px solid #e67e22; border-radius: 10px; background: #fef5e7;"
+        else:
+            # ESTILO ESTÁNDAR: El que ya tenías definido
+            return "border: 2px solid #3498db; border-radius: 10px; background: #FFFFFF;"
