@@ -1,5 +1,4 @@
 import threading
-import winsound
 from imap_tools import MailBox,MailMessageFlags
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, 
@@ -7,7 +6,7 @@ from PySide6.QtWidgets import (
     QScrollArea,QStackedWidget,QLabel
 )
 from PySide6.QtCore import Qt, QThread, Signal,QTimer
-from PySide6.QtGui import QIcon, QPixmap
+from PySide6.QtGui import QIcon,QPixmap
 from PySide6.QtCore import QSize
 
 import notificationItem
@@ -15,34 +14,27 @@ import mailWindow
 
 import os
 
-#if getattr(sys, 'frozen', False):
-    # Si es un ejecutable hecho con PyInstaller
-#    RUTA_PROYECTO = os.path.dirname(sys.executable)
-#else:
-    # Si es script normal (.py)
 RUTA_PROYECTO = os.path.dirname(os.path.abspath(__file__))
     
 RUTA_REFRESHIMAGE = os.path.join(RUTA_PROYECTO,'images','iconRefreshButton.png')
+RUTA_ICON = os.path.join(RUTA_PROYECTO,'images','icon.ico')
 content_lock = threading.Lock()
 # Función para verificar si se ha recibido un correo
 
-def play_alarm_sound():
-    winsound.Beep(1000, 300)
-
 def check_email():
     global content
-    MAIL_PASSWORD ="XXXXXXXXXXXXX"
-    MAIL_USER = "XXXXXXXXXXXX"
+    MAIL_PASSWORD ="XXXXXX"
+    MAIL_USER = "XXXXXXXXX"
 
     container = []
-    with MailBox("mail.XXXXXXXXXXXX.com.ar").login(MAIL_USER, MAIL_PASSWORD) as mb:
+    with MailBox("mail.XXXXXXXXXX.com.ar").login(MAIL_USER, MAIL_PASSWORD) as mb:
         for msg in mb.fetch(criteria='UNSEEN',mark_seen=False):
-            if(msg.from_ == "XXXXXXXXXXXX"):
+            if(msg.from_ == "XXXXXXXXXX"):
                 container.append({
                     "subject": msg.subject,
                     "text": msg.text,
                     "uid" : msg.uid,
-                    "time": msg.date
+                    "time": msg.date.strftime("%y/%m/%d %H:%M")
                 })
     return container
 
@@ -51,6 +43,8 @@ class Open_window(QMainWindow):
         super().__init__()
         self.setWindowTitle("Alarma")
         self.resize(400, 600)
+        app_icon = QIcon(QPixmap(RUTA_ICON))
+        self.setWindowIcon(app_icon)
 
         #Widget principal--------------------------------------------------------------------------
         self.main_widget = QWidget()
@@ -119,11 +113,12 @@ class Open_window(QMainWindow):
         # Lo agregamos al layout
             self.layout_cascada.addWidget(self.label_vacio)
         else:
+            self.layout_cascada.setEnabled(False)
             for email_data in conteiner:
                 newMail = create_Mail(email_data)
                 newMail.clicked.connect(self.abrir_detalle)
                 self.layout_cascada.addWidget(newMail)
-
+            self.layout_cascada.setEnabled(True)
     
     def clear_Noti(self):
         """
@@ -178,10 +173,10 @@ def marcarVisto(uid):
     """
     Funcion global que ejecuta por si mismo la entrada al mail para marcar como visto al mail correspondiente
     """
-    MAIL_PASSWORD = "XXXXXXXXXXXX"
-    MAIL_USER = "XXXXXXXXXXXX"
+    MAIL_PASSWORD = "XXXXXXXXXXX"
+    MAIL_USER = "XXXXXXXXXXXXXXXX"
     try:
-        with MailBox("mail.XXXXXXXXXXXX.com.ar").login(MAIL_USER, MAIL_PASSWORD) as mb:
+        with MailBox("mail.XXXXXXXXXXXXX.com.ar").login(MAIL_USER, MAIL_PASSWORD) as mb:
             mb.flag(uid, MailMessageFlags.SEEN, True)
     except Exception as e:
         print(f"Error de red al marcar como visto: {e}")
